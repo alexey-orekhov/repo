@@ -1,0 +1,101 @@
+---
+
+# Old format deb repositories Streach
+- name: Configure repo apt old format <|> Debian Streach
+  ansible.builtin.apt_repository:
+    update_cache: False
+    repo:     '{{ item.repo }}'
+    codename: '{{ item.codename | default(omit) }}'
+    filename: '{{ item.filename | regex_replace(".list$", "") | regex_replace(".sources$", "") }}'
+    mode:     '{{ item.mode | default(omit) }}'
+    state:    '{{ item.state | default("present") }}'
+  loop: >-
+    {{
+      streach_base_repositories | default([]) 
+      | union(streach_product_repositories | default([]))
+      | union(streach_hosts_repositories | default([]))
+    }}
+  register: apt_register_streach_all_repo
+  when:
+    - ansible_facts.distribution == "Debian"
+    - ansible_facts.distribution_major_version == "9"
+    - streach_base_repositories is defined or
+      streach_product_repositories is defined or
+      streach_hosts_repositories is defined
+  tags:
+    - add_debian_repo
+
+# Old format deb repositories Buster
+- name: Configure repo apt old format <|> Debian Buster
+  ansible.builtin.apt_repository:
+    update_cache: False
+    repo:     '{{ item.repo }}'
+    codename: '{{ item.codename | default(omit) }}'
+    filename: '{{ item.filename | regex_replace(".list$", "") | regex_replace(".sources$", "") }}'
+    mode:     '{{ item.mode | default(omit) }}'
+    state:    '{{ item.state | default("present") }}'
+  loop: >-
+    {{
+      buster_base_repositories | default([]) 
+      | union(buster_product_repositories | default([]))
+      | union(buster_hosts_repositories | default([]))
+    }}
+  register: apt_register_buster_all_repo
+  when:
+    - ansible_facts.distribution == "Debian"
+    - ansible_facts.distribution_major_version == "10"
+    - buster_base_repositories is defined or
+      buster_product_repositories is defined or
+      buster_hosts_repositories is defined
+  tags:
+    - add_debian_repo
+
+# Old format deb repositories Bullseye
+- name: Configure repo apt old format <|> Debian Bullseye
+  ansible.builtin.apt_repository:
+    update_cache: False
+    repo:     '{{ item.repo }}'
+    codename: '{{ item.codename | default(omit) }}'
+    filename: '{{ item.filename | regex_replace(".list$", "") | regex_replace(".sources$", "") }}'
+    mode:     '{{ item.mode | default(omit) }}'
+    state:    '{{ item.state | default("present") }}'
+  loop: >-
+    {{
+      bullseye_base_repositories | default([]) 
+      | union(bullseye_product_repositories | default([]))
+      | union(bullseye_hosts_repositories | default([]))
+    }}
+  register: apt_register_bullseye_all_repo
+  when:
+    - ansible_facts.distribution == "Debian"
+    - ansible_facts.distribution_major_version == "11"
+    - bullseye_base_repositories is defined or
+      bullseye_product_repositories is defined or
+      bullseye_hosts_repositories is defined
+  tags:
+    - add_debian_repo
+
+# Old format deb repositories Bookworm
+- name: Configure repo apt old format <|> Debian Bookworkm
+  ansible.builtin.apt_repository:
+    update_cache: False
+    repo:     '{{ item.repo }}'
+    codename: '{{ item.codename | default(omit) }}'
+    filename: '{{ item.filename | regex_replace(".list$", "") | regex_replace(".sources$", "") }}'
+    mode:     '{{ item.mode | default(omit) }}'
+    state:    '{{ item.state | default("present") }}'
+  loop: >-
+    {{
+      bookworkm_base_repositories | default([]) 
+      | union(bookworkm_product_repositories | default([]))
+      | union(bookworkm_hosts_repositories | default([]))
+    }}
+  register: apt_register_bookworkm_all_repo
+  when:
+    - ansible_facts.distribution == "Debian"
+    - ansible_facts.distribution_major_version == "12"
+    - bookworkm_base_repositories is defined or
+      bookworkm_product_repositories is defined or
+      bookworkm_hosts_repositories is defined
+  tags:
+    - add_debian_repo

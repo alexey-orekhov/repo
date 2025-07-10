@@ -1,0 +1,530 @@
+---
+#######################################################BACKUP AND REMOVE OLD REPOSITORIES#######################################################
+
+- name: Create dir for old repos
+  ansible.builtin.file:
+    path: /tmp/old_repos/
+    state: directory
+    mode: '0755'
+  tags: 
+    - remove_old_repo
+
+- name: Set repositories filenames <|> All OS
+  ansible.builtin.set_fact:
+    base_stretch_filenames: "{{ (
+            stretch_base_repositories | default([]) + 
+            stretch_product_repositories | default([]) + 
+            stretch_hosts_repositories | default([]) ) | map(attribute='filename') | list }}"
+    base_buster_filenames: "{{ (
+            buster_base_repositories | default([]) + 
+            buster_product_repositories | default([]) + 
+            buster_hosts_repositories | default([]) ) | map(attribute='filename') | list }}"
+    base_bullseye_filenames: "{{ (
+            bullseye_base_repositories | default([]) + 
+            bullseye_product_repositories | default([]) + 
+            bullseye_hosts_repositories | default([]) ) | map(attribute='filename') | list }}"
+    base_bookworm_filenames: "{{ (
+            bookworm_base_repositories | default([]) + 
+            bookworm_product_repositories | default([]) + 
+            bookworm_hosts_repositories | default([]) ) | map(attribute='filename') | list }}"
+    base_bionic_filenames: "{{ (
+            bionic_base_repositories | default([]) + 
+            bionic_product_repositories | default([]) + 
+            bionic_hosts_repositories | default([]) ) | map(attribute='filename') | list }}"
+    base_focal_filenames: "{{ (
+            focal_base_repositories | default([]) + 
+            focal_product_repositories | default([]) + 
+            focal_hosts_repositories | default([]) ) | map(attribute='filename') | list }}"
+    base_jammy_filenames: "{{ (
+            jammy_base_repositories | default([]) + 
+            jammy_product_repositories | default([]) + 
+            jammy_hosts_repositories | default([]) ) | map(attribute='filename') | list }}"
+    base_stable_apt_filenames: "{{ (
+            stable_apt_base_repositories | default([]) + 
+            stable_apt_product_repositories | default([]) + 
+            stable_apt_hosts_repositories | default([]) ) | map(attribute='filename') | list }}"
+    base_ol7_filenames: "{{ (
+            ol7_base_repositories | default([]) + 
+            ol7_product_repositories | default([]) + 
+            ol7_hosts_repositories | default([]) ) | map(attribute='name') | list }}"
+    base_ol8_filenames: "{{ (
+            ol8_base_repositories | default([]) + 
+            ol8_product_repositories | default([]) + 
+            ol8_hosts_repositories | default([]) ) | map(attribute='name') | list }}"
+    base_ol9_filenames: "{{ (
+            ol9_base_repositories | default([]) + 
+            ol9_product_repositories | default([]) + 
+            ol9_hosts_repositories | default([]) ) | map(attribute='name') | list }}"
+    base_rh8_filenames: "{{ (
+            rh8_base_repositories | default([]) + 
+            rh8_product_repositories | default([]) + 
+            rh8_hosts_repositories | default([]) ) | map(attribute='name') | list }}"
+    base_rh9_filenames: "{{ (
+            rh9_base_repositories | default([]) + 
+            rh9_product_repositories | default([]) + 
+            rh9_hosts_repositories | default([]) ) | map(attribute='name') | list }}"
+    base_co7_filenames: "{{ (
+            ol7_base_repositories | default([]) + 
+            ol7_product_repositories | default([]) + 
+            ol7_hosts_repositories | default([]) ) | map(attribute='name') | list }}"
+    base_stable_rpm_filenames: "{{ (
+            stable_rpm_base_repositories | default([]) + 
+            stable_rpm_product_repositories | default([]) + 
+            stable_rpm_hosts_repositories | default([]) ) | map(attribute='name') | list }}"
+  tags: 
+    - remove_old_repo
+
+- name: Find old repos files <|> Debian and Ubuntu
+  ansible.builtin.find:
+    paths: /etc/apt/sources.list.d
+    patterns:
+      - '.*\.list$'
+    use_regex: yes
+    contains: "{{ ( repo_remove_search_patterns | map('regex_escape') ) | join('|') }}"
+    read_whole_file: true
+    file_type: file
+    recurse: true
+  register: found_repos
+  when: ansible_facts['distribution'] == "Debian" or
+        ansible_facts['distribution'] == "Ubuntu"
+  tags: 
+    - remove_old_repo
+
+- name: Find old repos files <|> Oracle and RedHat and Centos
+  ansible.builtin.find:
+    paths: /etc/yum.repos.d
+    patterns:
+      - '.*\.repo$'
+    use_regex: yes
+    contains: "{{ ( repo_remove_search_patterns | map('regex_escape') ) | join('|') }}"
+    read_whole_file: true
+    file_type: file
+    recurse: true
+  register: found_repos
+  when: ansible_facts['distribution'] == "OracleLinux" or
+        ansible_facts['distribution'] == "RedHat" or
+        ansible_facts['distribution'] == "CentOS"
+  tags: 
+    - remove_old_repo
+
+- name: Check if /tmp/old_repos/ exists
+  ansible.builtin.stat:
+    path: /tmp/old_repos/
+  register: dir_check
+  tags: 
+    - remove_old_repo
+
+# Delete old repo from Debian Streach
+- name: Copy old source.list.d repos <|> Debian Streach
+  ansible.builtin.copy:
+    src: "{{ item.path }}"
+    dest: "/tmp/old_repos/{{ item.path | basename }}"
+    remote_src: true
+    mode: '0644'
+  register: copy_result
+  loop: "{{ found_repos.files | unique(attribute='path') }}"
+  when:
+    - dir_check.stat.exists
+    - dir_check.stat.isdir
+    - (item.path | basename) not in (base_stretch_filenames + base_stable_apt_filenames) 
+    - ansible_facts.distribution == "Debian"
+    - ansible_facts.distribution_major_version == "9"
+  tags: 
+    - remove_old_repo
+
+- name: Remove old files <|> Debian Streach
+  file: 
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ found_repos.files | unique(attribute='path') }}"
+  when:
+    - copy_result is defined
+    - (item.path | basename) not in (base_stretch_filenames + base_stable_apt_filenames) 
+    - ansible_facts.distribution == "Debian"
+    - ansible_facts.distribution_major_version == "9"
+  tags: 
+    - remove_old_repo
+
+# Delete old repo from Debian Buster
+- name: Copy old source.list.d repos <|> Debian Buster
+  ansible.builtin.copy:
+    src: "{{ item.path }}"
+    dest: "/tmp/old_repos/{{ item.path | basename }}"
+    remote_src: true
+    mode: '0644'
+  register: copy_result
+  loop: "{{ (found_repos.files | default([])) | unique(attribute='path') }}"
+  when:
+    - dir_check.stat.exists
+    - dir_check.stat.isdir
+    - (item.path | basename) not in (base_buster_filenames + base_stable_apt_filenames) 
+    - ansible_facts.distribution == "Debian"
+    - ansible_facts.distribution_major_version == "10"
+  tags: 
+    - remove_old_repo
+
+- name: Remove old files <|> Debian Buster
+  file: 
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ (found_repos.files | default([])) | unique(attribute='path') }}"
+  when:
+    - copy_result is defined
+    - (item.path | basename) not in (base_buster_filenames + base_stable_apt_filenames) 
+    - ansible_facts.distribution == "Debian"
+    - ansible_facts.distribution_major_version == "10"
+  tags: 
+    - remove_old_repo
+
+# Delete old repo from Debian Bullseye
+- name: Copy old source.list.d repos <|> Debian Bullseye
+  ansible.builtin.copy:
+    src: "{{ item.path }}"
+    dest: "/tmp/old_repos/{{ item.path | basename }}"
+    remote_src: true
+    mode: '0644'
+  register: copy_result
+  loop: "{{ (found_repos.files | default([])) | unique(attribute='path') }}"
+  when:
+    - dir_check.stat.exists
+    - dir_check.stat.isdir
+    - (item.path | basename) not in (base_bullseye_filenames + base_stable_apt_filenames) 
+    - ansible_facts.distribution == "Debian"
+    - ansible_facts.distribution_major_version == "11"
+  tags: 
+    - remove_old_repo
+
+- name: Remove old files <|> Debian Bullseye
+  file: 
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ (found_repos.files | default([])) | unique(attribute='path') }}"
+  when:
+    - copy_result is defined
+    - (item.path | basename) not in (base_bullseye_filenames + base_stable_apt_filenames) 
+    - ansible_facts.distribution == "Debian"
+    - ansible_facts.distribution_major_version == "11"
+  tags:
+    - remove_old_repo
+
+# Delete old repo from Debian Bookworm
+- name: Copy old source.list.d repos <|> Debian Bookworm
+  ansible.builtin.copy:
+    src: "{{ item.path }}"
+    dest: "/tmp/old_repos/{{ item.path | basename }}"
+    remote_src: true
+    mode: '0644'
+  register: copy_result
+  loop: "{{ (found_repos.files | default([])) | unique(attribute='path') }}"
+  when:
+    - dir_check.stat.exists
+    - dir_check.stat.isdir
+    - (item.path | basename) not in (base_bookworm_filenames + base_stable_apt_filenames) 
+    - ansible_facts.distribution == "Debian"
+    - ansible_facts.distribution_major_version == "12"
+  tags: 
+    - remove_old_repo
+
+- name: Remove old files <|> Debian Bookworm
+  file: 
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ (found_repos.files | default([])) | unique(attribute='path') }}"
+  when:
+    - copy_result is defined
+    - (item.path | basename) not in (base_bookworm_filenames + base_stable_apt_filenames) 
+    - ansible_facts.distribution == "Debian"
+    - ansible_facts.distribution_major_version == "12"
+  tags: 
+    - remove_old_repo
+
+# Delete old repo from Ubuntu Bionic
+- name: Copy old source.list.d repos <|> Ubuntu Bionic
+  ansible.builtin.copy:
+    src: "{{ item.path }}"
+    dest: "/tmp/old_repos/{{ item.path | basename }}"
+    remote_src: true
+    mode: '0644'
+  register: copy_result
+  loop: "{{ (found_repos.files | default([])) | unique(attribute='path') }}"
+  when:
+    - dir_check.stat.exists
+    - dir_check.stat.isdir
+    - (item.path | basename) not in (base_bionic_filenames + base_stable_apt_filenames) 
+    - ansible_facts.distribution == "Ubuntu"
+    - ansible_facts.distribution_major_version == "18"
+  tags: 
+    - remove_old_repo
+
+- name: Remove old files <|> Debian Bionic
+  file: 
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ (found_repos.files | default([])) | unique(attribute='path') }}"
+  when:
+    - copy_result is defined
+    - (item.path | basename) not in (base_bionic_filenames + base_stable_apt_filenames) 
+    - ansible_facts.distribution == "Ubuntu"
+    - ansible_facts.distribution_major_version == "18"
+  tags: 
+    - remove_old_repo
+
+# Delete old repo from Ubuntu Focal
+- name: Copy old source.list.d repos <|> Ubuntu Focal
+  ansible.builtin.copy:
+    src: "{{ item.path }}"
+    dest: "/tmp/old_repos/{{ item.path | basename }}"
+    remote_src: true
+    mode: '0644'
+  register: copy_result
+  loop: "{{ (found_repos.files | default([])) | unique(attribute='path') }}"
+  when:
+    - dir_check.stat.exists
+    - dir_check.stat.isdir
+    - (item.path | basename) not in (base_bionic_filenames + base_stable_apt_filenames) 
+    - ansible_facts.distribution == "Ubuntu"
+    - ansible_facts.distribution_major_version == "20"
+  tags: 
+    - remove_old_repo
+
+- name: Remove old files <|> Ubuntu Focal
+  file: 
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ (found_repos.files | default([])) | unique(attribute='path') }}"
+  when:
+    - copy_result is defined
+    - (item.path | basename) not in (base_bionic_filenames + base_stable_apt_filenames) 
+    - ansible_facts.distribution == "Ubuntu"
+    - ansible_facts.distribution_major_version == "20"
+  tags: 
+    - remove_old_repo
+
+# Delete old repo from Ubuntu Jammy
+- name: Copy old source.list.d repos <|> Ubuntu Jammy
+  ansible.builtin.copy:
+    src: "{{ item.path }}"
+    dest: "/tmp/old_repos/{{ item.path | basename }}"
+    remote_src: true
+    mode: '0644'
+  register: copy_result
+  loop: "{{ (found_repos.files | default([])) | unique(attribute='path') }}"
+  when:
+    - dir_check.stat.exists
+    - dir_check.stat.isdir
+    - (item.path | basename) not in (base_jammy_filenames + base_stable_apt_filenames) 
+    - ansible_facts.distribution == "Ubuntu"
+    - ansible_facts.distribution_major_version == "22"
+  tags: 
+    - remove_old_repo
+
+- name: Remove old files <|> Ubuntu Jammy
+  file: 
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ (found_repos.files | default([])) | unique(attribute='path') }}"
+  when:
+    - copy_result is defined
+    - (item.path | basename) not in (base_jammy_filenames + base_stable_apt_filenames) 
+    - ansible_facts.distribution == "Ubuntu"
+    - ansible_facts.distribution_major_version == "22"
+  tags: 
+    - remove_old_repo
+
+- name: Remove all base reposiotries /etc/apt/sources.list <|> Debian and Ubuntu
+  template:
+    src: apt/sources.list.j2
+    dest: /etc/apt/sources.list
+    owner: root
+    group: root
+    mode: "644"
+  when: ansible_facts['distribution'] == "Debian" or 
+        ansible_facts['distribution'] == "Ubuntu"
+  tags: 
+    - remove_old_repo
+
+# Delete old repo from Oracle 7
+- name: Copy old yum repos <|> Oracle 7
+  ansible.builtin.copy:
+    src: "{{ item.path }}"
+    dest: "/tmp/old_repos/{{ item.path | basename }}"
+    remote_src: true
+    mode: '0644'
+  register: copy_result
+  loop: "{{ (found_repos.files | default([])) | unique(attribute='path') }}"
+  when:
+    - dir_check.stat.exists
+    - dir_check.stat.isdir
+    - (item.path | basename) not in ( base_ol7_filenames + base_stable_rpm_filenames )
+    - ansible_facts.distribution == "OracleLinux"
+    - ansible_facts.distribution_major_version == "7"
+  tags: 
+    - remove_old_repo
+
+- name: Remove old files <|> Oracle 7
+  file: 
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ (found_repos.files | default([])) | unique(attribute='path') }}"
+  when:
+    - copy_result is defined
+    - (item.path | basename) not in ( base_ol7_filenames + base_stable_rpm_filenames )
+    - ansible_facts.distribution == "OracleLinux"
+    - ansible_facts.distribution_major_version == "7"
+  tags: 
+    - remove_old_repo
+
+# Delete old repo from Oracle 8
+- name: Copy old yum repos <|> Oracle 8
+  ansible.builtin.copy:
+    src: "{{ item.path }}"
+    dest: "/tmp/old_repos/{{ item.path | basename }}"
+    remote_src: true
+    mode: '0644'
+  register: copy_result
+  loop: "{{ (found_repos.files | default([])) | unique(attribute='path') }}"
+  when:
+    - dir_check.stat.exists
+    - dir_check.stat.isdir
+    - (item.path | basename) not in ( base_ol8_filenames + base_stable_rpm_filenames )
+    - ansible_facts.distribution == "OracleLinux"
+    - ansible_facts.distribution_major_version == "8"
+  tags:
+    - remove_old_repo
+
+- name: Remove old files <|> Oracle 8
+  file: 
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ (found_repos.files | default([])) | unique(attribute='path') }}"
+  when:
+    - copy_result is defined
+    - (item.path | basename) not in ( base_ol8_filenames + base_stable_rpm_filenames )
+    - ansible_facts.distribution == "OracleLinux"
+    - ansible_facts.distribution_major_version == "8"
+  tags:
+    - remove_old_repo
+
+# Delete old repo from Oracle 9
+- name: Copy old yum repos <|> Oracle 9
+  ansible.builtin.copy:
+    src: "{{ item.path }}"
+    dest: "/tmp/old_repos/{{ item.path | basename }}"
+    remote_src: true
+    mode: '0644'
+  register: copy_result
+  loop: "{{ (found_repos.files | default([])) | unique(attribute='path') }}"
+  when:
+    - dir_check.stat.exists
+    - dir_check.stat.isdir
+    - (item.path | basename) not in ( base_ol9_filenames + base_stable_rpm_filenames )
+    - ansible_facts.distribution == "OracleLinux"
+    - ansible_facts.distribution_major_version == "9"
+  tags: 
+    - remove_old_repo
+
+- name: Remove old files <|> Oracle 9
+  file: 
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ (found_repos.files | default([])) | unique(attribute='path') }}"
+  when:
+    - copy_result is defined
+    - (item.path | basename) not in ( base_ol9_filenames + base_stable_rpm_filenames )
+    - ansible_facts.distribution == "OracleLinux"
+    - ansible_facts.distribution_major_version == "9"
+  tags: 
+    - remove_old_repo
+
+# Delete old repo from RedHat 8
+- name: Copy old yum repos <|> RedHat 8
+  ansible.builtin.copy:
+    src: "{{ item.path }}"
+    dest: "/tmp/old_repos/{{ item.path | basename }}"
+    remote_src: true
+    mode: '0644'
+  register: copy_result
+  loop: "{{ (found_repos.files | default([])) | unique(attribute='path') }}"
+  when:
+    - dir_check.stat.exists
+    - dir_check.stat.isdir
+    - (item.path | basename) not in ( base_rh8_filenames + base_stable_rpm_filenames )
+    - ansible_facts.distribution == "RedHat"
+    - ansible_facts.distribution_major_version == "8"
+  tags: 
+    - remove_old_repo
+
+- name: Remove old files <|> RedHat 8
+  file: 
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ (found_repos.files | default([])) | unique(attribute='path') }}"
+  when:
+    - copy_result is defined
+    - (item.path | basename) not in ( base_rh8_filenames + base_stable_rpm_filenames )
+    - ansible_facts.distribution == "RedHat"
+    - ansible_facts.distribution_major_version == "8"
+  tags: 
+    - remove_old_repo
+
+# Delete old repo from RedHat 9
+- name: Copy old yum repos <|> RedHat 9
+  ansible.builtin.copy:
+    src: "{{ item.path }}"
+    dest: "/tmp/old_repos/{{ item.path | basename }}"
+    remote_src: true
+    mode: '0644'
+  register: copy_result
+  loop: "{{ (found_repos.files | default([])) | unique(attribute='path') }}"
+  when:
+    - dir_check.stat.exists
+    - dir_check.stat.isdir
+    - (item.path | basename) not in ( base_rh9_filenames + base_stable_rpm_filenames )
+    - ansible_facts.distribution == "RedHat"
+    - ansible_facts.distribution_major_version == "9"
+  tags: 
+    - remove_old_repo
+
+- name: Remove old files <|> RedHat 9
+  file: 
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ (found_repos.files | default([])) | unique(attribute='path') }}"
+  when:
+    - copy_result is defined
+    - (item.path | basename) not in ( base_rh9_filenames + base_stable_rpm_filenames )
+    - ansible_facts.distribution == "RedHat"
+    - ansible_facts.distribution_major_version == "9"
+  tags: 
+    - remove_old_repo
+
+# Delete old repo from CentOS 7
+- name: Copy old yum repos <|> CentOS 7
+  ansible.builtin.copy:
+    src: "{{ item.path }}"
+    dest: "/tmp/old_repos/{{ item.path | basename }}"
+    remote_src: true
+    mode: '0644'
+  register: copy_result
+  loop: "{{ (found_repos.files | default([])) | unique(attribute='path') }}"
+  when:
+    - dir_check.stat.exists
+    - dir_check.stat.isdir
+    - (item.path | basename) not in ( base_co7_filenames + base_stable_rpm_filenames )
+    - ansible_facts.distribution == "CentOS"
+    - ansible_facts.distribution_major_version == "8"
+  tags: 
+    - remove_old_repo
+
+- name: Remove old files <|> CentOS 7
+  file: 
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ (found_repos.files | default([])) | unique(attribute='path') }}"
+  when:
+    - copy_result is defined
+    - (item.path | basename) not in ( base_co7_filenames + base_stable_rpm_filenames )
+    - ansible_facts.distribution == "CentOS"
+    - ansible_facts.distribution_major_version == "7"
+  tags: 
+    - remove_old_repo
