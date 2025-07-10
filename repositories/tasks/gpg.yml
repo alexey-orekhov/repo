@@ -1,0 +1,29 @@
+---
+
+# Add debian gpg key
+- name: "Add an Apt samokat gpg key Debian and Ubuntu"
+  apt_key:
+    id: 38855F2F8129393379CA138A49BE2535600D9162
+    url: "{{ repo_pulp_gpg }}"
+    keyring: /etc/apt/trusted.gpg.d/samokat-deb-release-public.gpg
+    state: present
+  when: ansible_facts['distribution'] == "Debian" or 
+        ansible_facts['distribution'] == "Ubuntu"
+  tags: 
+    - add_gpg_repo
+    - add_debian_repo
+    - add_ubuntu_repo 
+
+# Add gpg key node exporter
+- name: "Add an Apt node exporter gpg key Debian and Ubuntu"
+  apt_key:
+    id: FB4A6DD9F52B3A760635F45D26C58AE42031D406
+    url: "{{ p01_mirror_url }}"
+    keyring: /etc/apt/trusted.gpg.d/node-exporter-public.gpg
+    state: present
+  when: ansible_facts['distribution'] == "Debian" or 
+        ansible_facts['distribution'] == "Ubuntu"
+  tags: 
+    - add_gpg_repo
+    - add_debian_repo
+    - add_ubuntu_repo

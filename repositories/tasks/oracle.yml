@@ -1,0 +1,85 @@
+---
+
+# Oracle 7 repositories
+- name: Configure repo yum <|> Oracle 7
+  ansible.builtin.yum_repository:
+    name:        "{{ item.name | default(item, true) }}"
+    description: "{{ item.description | default(item.name, true) | default(item, true) }}"
+    baseurl:     "{{ item.baseurl | default(omit) }}"
+    enabled:     "{{ item.enabled | default(1) }}"
+    exclude:     "{{ item.exclude | default(omit) }}"
+    gpgcheck:    "{{ item.gpgcheck | default(0) }}"
+    gpgkey:      "{{ item.gpgkey | default(omit) }}"
+    proxy:       "{{ item.proxy | default(omit) }}"
+    state:       "{{ item.state | default('present') }}"
+  loop: >-
+    {{
+      ol7_base_repositories | default([]) 
+      | union(ol7_product_repositories | default([]))
+      | union(ol7_hosts_repositories | default([]))
+    }}
+  register: yum_register_ol7_all_repo
+  when:
+    - ansible_facts['distribution'] == "OracleLinux"
+    - ansible_facts['distribution_major_version'] == "7"
+    - ol7_base_repositories is defined or
+      ol7_product_repositories is defined or
+      ol7_hosts_repositories is defined
+  tags:
+    - add_oracle_repo
+
+# Oracle 8 repositories
+- name: Configure repo yum <|> Oracle 8
+  ansible.builtin.yum_repository:
+    name:        "{{ item.name | default(item, true) | regex_replace('\\.repo$', '') }}"
+    description: "{{ item.description | default(item.name, true) | default(item, true) }}"
+    baseurl:     "{{ item.baseurl | default(omit) }}"
+    enabled:     "{{ item.enabled | default(1) }}"
+    exclude:     "{{ item.exclude | default(omit) }}"
+    gpgcheck:    "{{ item.gpgcheck | default(0) }}"
+    gpgkey:      "{{ item.gpgkey | default(omit) }}"
+    proxy:       "{{ item.proxy | default(omit) }}"
+    state:       "{{ item.state | default('present') }}"
+  loop: >-
+    {{
+      ol8_base_repositories | default([])
+      | union(ol8_product_repositories | default([]))
+      | union(ol8_hosts_repositories | default([]))
+    }}
+  register: yum_register_ol8_all_repo
+  when:
+    - ansible_facts['distribution'] == "OracleLinux"
+    - ansible_facts['distribution_major_version'] == "8"
+    - ol8_base_repositories is defined or
+      ol8_product_repositories is defined or
+      ol8_hosts_repositories is defined
+  tags:
+    - add_oracle_repo
+
+# Oracle 9 repositories
+- name: Configure repo yum <|> Oracle 9
+  ansible.builtin.yum_repository:
+    name:        "{{ item.name | default(item, true) }}"
+    description: "{{ item.description | default(item.name, true) | default(item, true) }}"
+    baseurl:     "{{ item.baseurl | default(omit) }}"
+    enabled:     "{{ item.enabled | default(1) }}"
+    exclude:     "{{ item.exclude | default(omit) }}"
+    gpgcheck:    "{{ item.gpgcheck | default(0) }}"
+    gpgkey:      "{{ item.gpgkey | default(omit) }}"
+    proxy:       "{{ item.proxy | default(omit) }}"
+    state:       "{{ item.state | default('present') }}"
+  loop: >-
+    {{
+      ol9_base_repositories | default([]) 
+      | union(ol9_product_repositories | default([]))
+      | union(ol9_hosts_repositories | default([]))
+    }}
+  register: yum_register_ol9_all_repo
+  when:
+    - ansible_facts['distribution'] == "OracleLinux"
+    - ansible_facts['distribution_major_version'] == "9"
+    - ol9_base_repositories is defined or
+      ol9_product_repositories is defined or
+      ol9_hosts_repositories is defined
+  tags:
+    - add_oracle_repo

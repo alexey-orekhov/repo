@@ -1,0 +1,328 @@
+---
+
+bullseye_product_repositories:
+  - repo: "deb {{ p01_pulp_url }}/pulp/content/debian/k8s/1/24/stable flat-repo flat-repo-component"
+    filename: debian_bullseye_k8s_1_24.list
+    state: absent
+  - repo: "deb {{ p01_pulp_url }}/pulp/content/debian/k8s/1/25/stable flat-repo flat-repo-component"
+    filename: debian_bullseye_k8s_1_25.list
+    state: absent
+  - repo: "deb {{ p01_pulp_url }}/pulp/content/debian/k8s/1/26/stable flat-repo flat-repo-component"
+    filename: debian_bullseye_k8s_1_26.list
+    state: absent
+  - repo: "deb {{ p01_pulp_url }}/pulp/content/debian/k8s/1/27/stable flat-repo flat-repo-component"
+    filename: debian_bullseye_k8s_1_27.list
+    state: absent
+  - repo: "deb {{ p01_pulp_url }}/pulp/content/debian/k8s/1/28/stable flat-repo flat-repo-component"
+    filename: debian_bullseye_k8s_1_28.list
+    state: absent
+  - repo: "deb {{ p01_pulp_url }}/pulp/content/debian/k8s/1/29/stable flat-repo flat-repo-component"
+    filename: debian_bullseye_k8s_1_29.list
+    state: absent
+  - repo: "deb {{ p01_pulp_url }}/pulp/content/debian/k8s/1/30/stable flat-repo flat-repo-component"
+    filename: debian_bullseye_k8s_1_30.list
+    state: absent 
+  - repo: "deb {{ p01_pulp_url }}/pulp/content/debian/k8s/1/31/stable flat-repo flat-repo-component"
+    filename: debian_bullseye_k8s_1_31.list
+    state: absent
+  - repo: "deb {{ p01_pulp_url }}/pulp/content/debian/k8s/1/32/stable flat-repo flat-repo-component"
+    filename: debian_bullseye_k8s_1_32.list
+    state: absent
+
+repo_remove_search_patterns:
+  - 'deb https://p01-pulp.samokat.io/pulp/content/debian/bullseye/bullseye bullseye main'
+  - 'zabbix'
+  - 'edr'
+  - 'https://p01-pulp.samokat.io/pulp/content/oracle/ol8/baseos'
+  - 'https://p01-pulp.samokat.io/pulp/content/oracle/ol8/epel'
+  - 'vector'
+  - 'https://p01-pulp.samokat.io/pulp/content/oracle/ol8/appstream'
+  - 'https://p01-pulp.samokat.io/pulp/content/oracle/ol8/codeready-builder'
+  - 'uerk'
+
+#######################################################APT BASE REPOSITORIES VARS#######################################################
+
+# Old format deb repositories Stable
+stable_apt_base_repositories:
+  - repo: "deb {{ p01_pulp_url }}/pulp/content/debian/bizon/edr/smkt/stable pulp upload"
+    filename: debian_stable_edr_bizon.list
+    state: present
+  - repo: "deb {{ p01_mirror_url }}/deb_from_binary/apt/debian stable main"
+    filename: debian_stable_apt_binary.list
+    state: present
+  - repo: "deb {{ p01_pulp_url }}/pulp/content/debian/vector/stable stable vector-0"
+    filename: debian_stable_vector.list
+    state: present
+
+# New format deb repositories Stable
+stable_822_base_repositories:
+  - name: debian_stable_edr_bizon
+    uris: '{{ p01_pulp_url }}/pulp/content/debian/bizon/edr/smkt/stable'
+    architectures: amd64
+    suites: pulp
+    components:
+      - upload
+    signed_by: '/etc/apt/trusted.gpg.d/samokat-deb-release-public.gpg'
+    state: present
+  - name: debian_stable_vector
+    uris: '{{ p01_pulp_url }}/pulp/content/debian/vector/stable'
+    architectures: amd64
+    suites: stable
+    components:
+      - vector-0
+    signed_by: '/etc/apt/trusted.gpg.d/samokat-deb-release-public.gpg'
+    state: present
+  - name: debian_stable_apt_binary
+    uris: '{{ p01_mirror_url }}/deb_from_binary/apt/debian'
+    architectures: amd64
+    suites: stable
+    components:
+      - main
+    signed_by: '/etc/apt/trusted.gpg.d/node-exporter-public.gpg'
+    state: present
+
+# Old format deb repositories Streach
+stretch_base_repositories:
+  - repo: "deb {{ p01_pulp_url }}/pulp/content/debian/stretch/stretch stretch main"
+    filename: 00_debian_stretch_base.list
+    state: present
+
+# Old format deb repositories Buster
+buster_base_repositories:
+  - repo: "deb {{ p01_pulp_url }}/pulp/content/debian/buster/buster buster main"
+    filename: 00_debian_buster_base.list
+    state: present
+  - repo: "deb {{ p01_pulp_url }}/pulp/content/debian/buster/updates buster-updates main"
+    filename: 01_debian_buster_updates.list
+    state: present
+  - repo: "deb {{ p01_pulp_url }}/pulp/content/debian/buster/security buster/updates main"
+    filename: 02_debian_buster_security.list
+    state: present
+  - repo: "deb {{ p01_pulp_url }}/pulp/content/debian/zabbix/6/0 buster main"
+    filename: debian_buster_zabbix_agent.list
+    state: present
+
+# Old format deb repositories Bullseye
+bullseye_base_repositories:
+  - repo: "deb {{ p01_pulp_url }}/pulp/content/debian/bullseye/bullseye bullseye main"
+    filename: 00_debian_bullseye_base.list
+    state: present
+  - repo: "deb {{ p01_pulp_url }}/pulp/content/debian/bullseye/updates bullseye-updates main"
+    filename: 01_debian_bullseye_updates.list
+    state: present
+  - repo: "deb {{ p01_pulp_url }}/pulp/content/debian/bullseye/security bullseye-security main"
+    filename: 02_debian_bullseye_security.list
+    state: present
+  - repo: "deb {{ p01_pulp_url }}/pulp/content/debian/zabbix/6/0 bullseye main"
+    filename: debian_bullseye_zabbix_agent.list
+    state: present
+
+# Old format deb repositories Bookworm
+bookworm_base_repositories:
+  - repo: "deb {{ p01_pulp_url }}/pulp/content/debian/bookworm/bookworm bookworm main"
+    filename: 00_debian_bookworm_base.list
+    state: present
+  - repo: "deb {{ p01_pulp_url }}/pulp/content/debian/bookworm/updates bookworm-updates main"
+    filename: 01_debian_bookworm_updates.list
+    state: present
+  - repo: "deb {{ p01_pulp_url }}/pulp/content/debian/bookworm/serurity bookworm-security main"
+    filename: 02_debian_bookworm_security.list
+    state: present
+  - repo: "deb {{ p01_pulp_url }}/pulp/content/debian/zabbix/6/0 bookworm main"
+    filename: debian_bookworm_zabbix_agent.list
+    state: present
+
+# Old format deb repositories Bionic
+bionic_base_repositories:
+  - repo: "deb {{ p01_pulp_url }}/pulp/content/ubuntu/bionic/bionic bionic main universe"
+    filename: 00_ubuntu_bionic_base.list
+    state: present
+  - repo: "deb {{ p01_pulp_url }}/pulp/content/ubuntu/bionic/updates bionic-updates main"
+    filename: 01_ubuntu_bionic_updates.list
+    state: present
+  - repo: "deb {{ p01_pulp_url }}/pulp/content/ubuntu/bionic/serurity bionic-security main"
+    filename: 02_ubuntu_bionic_security.list
+    state: present
+  - repo: "deb {{ p01_pulp_url }}/pulp/content/ubuntu/zabbix/6/0 bionic main"
+    filename: ubuntu_bionic_zabbix_agent.list
+    state: present    
+
+# Old format deb repositories Focal
+focal_base_repositories:
+  - repo: "deb {{ p01_pulp_url }}/pulp/content/ubuntu/focal/focal focal main universe"
+    filename: 00_ubuntu_focal_base.list
+    state: present
+  - repo: "deb {{ p01_pulp_url }}/pulp/content/ubuntu/focal/updates focal-updates main"
+    filename: 01_ubuntu_focal_updates.list
+    state: present
+  - repo: "deb {{ p01_pulp_url }}/pulp/content/ubuntu/focal/serurity focal-security main"
+    filename: 02_ubuntu_focal_security.list
+    state: present
+  - repo: "deb {{ p01_pulp_url }}/pulp/content/ubuntu/zabbix/6/0 focal main"
+    filename: ubuntu_focal_zabbix_agent.list
+    state: present
+
+# Old format deb repositories Jammy
+jammy_base_repositories:
+  - repo: "deb {{ p01_pulp_url }}/pulp/content/ubuntu/jammy/jammy jammy main universe"
+    filename: 00_ubuntu_jammy_base.list
+    state: present
+  - repo: "deb {{ p01_pulp_url }}/pulp/content/ubuntu/jammy/updates jammy-updates main"
+    filename: 01_ubuntu_jammy_updates.list
+    state: present
+  - repo: "deb {{ p01_pulp_url }}/pulp/content/ubuntu/jammy/serurity jammy-security main"
+    filename: 02_ubuntu_jammy_security.list
+    state: present
+  - repo: "deb {{ p01_pulp_url }}/pulp/content/ubuntu/zabbix/6/0 jammy main"
+    filename: ubuntu_jammy_zabbix_agent.list
+    state: present
+
+# New format deb repositories Noble
+noble_base_repositories:
+  - name: ubuntu
+    uris: '{{ p01_pulp_url }}/pulp/content/ubuntu/noble/noble/'
+    architectures: amd64
+    suites: noble
+    components:
+      - main
+      - universe  
+    state: absent
+
+  - name: 00_ubuntu_noble_base
+    uris: '{{ p01_pulp_url }}/pulp/content/ubuntu/noble/noble/'
+    architectures: amd64
+    suites: noble
+    components:
+      - main
+      - universe
+    signed_by: '/etc/apt/trusted.gpg.d/samokat-deb-release-public.gpg'
+    state: present
+
+  - name: 01_ubuntu_noble_updates
+    uris: '{{ p01_pulp_url }}/pulp/content/ubuntu/noble/updates/'
+    architectures: amd64
+    suites: noble-updates
+    components:
+      - main
+      - universe
+    signed_by: '/etc/apt/trusted.gpg.d/samokat-deb-release-public.gpg'
+    state: present
+
+  - name: 02_ubuntu_noble_security
+    uris: '{{ p01_pulp_url }}/pulp/content/ubuntu/noble/security/'
+    architectures: amd64
+    suites: noble-security
+    components:
+      - main
+      - universe
+    signed_by: '/etc/apt/trusted.gpg.d/samokat-deb-release-public.gpg'
+    state: present
+
+  - name: ubuntu_noble_zabbix_agent
+    uris: '{{ p01_pulp_url }}/pulp/content/ubuntu/zabbix/7/0/noble'
+    architectures: amd64
+    suites: noble
+    components:
+      - main
+    signed_by: '/etc/apt/trusted.gpg.d/samokat-deb-release-public.gpg'
+    state: present
+
+#######################################################RPM BASE REPOSITORIES VARS#######################################################
+
+stable_rpm_base_repositories:
+  - name: rpm_stable_edr_bizon.repo
+    baseurl: "{{ p01_pulp_url }}/pulp/content/oracle/bizon/edr/smkt/stable"
+    state: present
+  - name: rpm_stable_vector.repo
+    baseurl: "{{ p01_pulp_url }}/pulp/content/oracle/vector/stable"
+    state: present
+  - name: rpm_stable_apt_binary.repo
+    baseurl: "{{ p01_mirror_url }}/yum_from_binary/packages"
+    state: present
+
+# Oracle 7 repositories
+ol7_base_repositories:
+  - name: oracle_ol7_base_baseos.repo
+    baseurl: "{{ p01_pulp_url }}/pulp/content/oracle/ol7/baseos"
+    state: present
+  - name: oracle_ol7_base_epel.repo
+    baseurl: "{{ p01_pulp_url }}/pulp/content/oracle/ol7/epel"
+    state: present
+  - name: oracle_ol7_base_uerk5.repo
+    baseurl: "{{ p01_pulp_url }}/pulp/content/oracle/ol7/uerk5"
+    state: present
+  - name: oracle_ol7_base_uerk6.repo
+    baseurl: "{{ p01_pulp_url }}/pulp/content/oracle/ol7/uerk6"
+    state: present
+
+# Oracle 8 repositories
+ol8_base_repositories:
+  - name: oracle_ol8_base_appstream.repo
+    baseurl: "{{ p01_pulp_url }}/pulp/content/oracle/ol8/appstream"
+    state: present
+  - name: oracle_ol8_base_baseos.repo
+    baseurl: "{{ p01_pulp_url }}/pulp/content/oracle/ol8/baseos"
+    state: present
+  - name: oracle_ol8_base_codeready-builder.repo
+    baseurl: "{{ p01_pulp_url }}/pulp/content/oracle/ol8/codeready-builder"
+    state: present
+  - name: oracle_ol8_base_epel.repo
+    baseurl: "{{ p01_pulp_url }}/pulp/content/oracle/ol8/epel"
+    state: present
+  - name: oracle_ol8_base_uerk6.repo
+    baseurl: "{{ p01_pulp_url }}/pulp/content/oracle/ol8/uerk6"
+    state: present
+  - name: oracle_ol8_base_uerk7.repo
+    baseurl: "{{ p01_pulp_url }}/pulp/content/oracle/ol8/uerk7"
+    state: present
+  - name: oracle_ol8_base_zabbix_agent.repo
+    baseurl: "{{ p01_pulp_url }}/pulp/content/oracle/zabbix/6/0/ol8"
+    state: present
+
+# Oracle 9 repositories
+ol9_base_repositories:
+  - name: oracle_ol9_base_appstream.repo
+    baseurl: "{{ p01_pulp_url }}/pulp/content/oracle/ol9/appstream"
+    state: present
+  - name: oracle_ol9_base_baseos.repo
+    baseurl: "{{ p01_pulp_url }}/pulp/content/oracle/ol9/baseos"
+    state: present
+  - name: oracle_ol9_base_uerk7.repo
+    baseurl: "{{ p01_pulp_url }}/pulp/content/oracle/ol9/uerk7"
+    state: present
+  - name: oracle_ol9_base_epel.repo
+    baseurl: "{{ p01_pulp_url }}/pulp/content/oracle/ol9/epel"
+    state: present
+
+# Redhat 8 repositories
+rh8_base_repositories:
+  - name: redhat_rh8_base_appstream.repo
+    baseurl: "{{ p01_pulp_url }}/pulp/content/redhat/rh8/appstream"
+    state: present
+  - name: redhat_rh8_base_baseos.repo
+    baseurl: "{{ p01_pulp_url }}/pulp/content/redhat/rh8/baseos"
+    state: present
+  - name: redhat_rh8_base_epel.repo
+    baseurl: "{{ p01_pulp_url }}/pulp/content/redhat/rh8/epel"
+    state: present
+
+# Redhat 9 repositories
+rh9_base_repositories:
+  - name: redhat_rh9_base_appstream.repo
+    baseurl: "{{ p01_pulp_url }}/pulp/content/redhat/rh9/appstream"
+    state: present
+  - name: redhat_rh9_base_baseos.repo
+    baseurl: "{{ p01_pulp_url }}/pulp/content/redhat/rh9/baseos"
+    state: present
+
+# CentOS 7 repositories
+co7_base_repositories:
+  - name: centos_co7_base_os.repo
+    baseurl: "{{ p01_pulp_url }}/pulp/content/centos/7/os"
+    state: present
+  - name: centos_co7_base_extras.repo
+    baseurl: "{{ p01_pulp_url }}/pulp/content/centos/7/extras"
+    state: present
+  - name: centos_co7_base_epel.repo
+    baseurl: "{{ p01_pulp_url }}/pulp/content/centos/7/epel"
+    state: present
